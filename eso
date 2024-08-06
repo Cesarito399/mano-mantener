@@ -1,0 +1,41 @@
+#include <Servo.h>
+
+Servo miServo;            // Objeto Servo para controlar el servomotor
+int pinJoystickX = A0;    // Pin del joystick para el eje X
+unsigned long tiempoInicio = 0;  // Variable para almacenar el tiempo de inicio de la acción
+bool accionActiva = false; // Variable para controlar si la acción está activa o en pausa
+
+void setup() {
+  miServo.attach(2);      // Pin de control del servomotor
+  Serial.begin(9600);
+  tiempoInicio = millis();  // Inicializar el tiempo de inicio
+}
+
+void loop() {
+  if (!accionActiva) {
+    // Si la acción no está activa, iniciarla
+    ejecutarAccion();
+  } else {
+    // Si la acción está activa, verificar si ha pasado el tiempo de pausa (2 segundos)
+    if (millis() - tiempoInicio >= 2000) {
+      // Han pasado 2 segundos, desactivar la acción
+      accionActiva = false;
+      Serial.println("Pausa terminada, acción desactivada.");
+    }
+  }
+}
+
+void ejecutarAccion() {
+  int valorJoystickX = analogRead(pinJoystickX); // Lee el valor del eje X del joystick
+
+  // Mapea los valores de 0-1023 del joystick a 0-180 para los grados del servomotor
+  int anguloServo = map(valorJoystickX, 0, 1023, 0, 180);
+
+  miServo.write(anguloServo); // Mueve el servomotor a la posición calculada
+  Serial.print("Angulo del servo: ");
+  Serial.println(anguloServo);
+
+  // Marcar que la acción está activa y guardar el tiempo de inicio de la acción
+  accionActiva = true;
+  tiempoInicio = millis();  // Guardar el tiempo actual para la pausa
+}
